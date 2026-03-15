@@ -10,6 +10,18 @@ This project focuses on tracking price dynamics in Argentina by scraping data fr
 
 ## Current Status: 🏗️ In Development
 - **[March 8, 2026]:** Initial script deployment and first data capture completed (Baseline).
-- **[Upcoming]:** Second data capture and price variation analysis scheduled for next week.
+-  **[March 8, 2026]:** Initial script deployment and first data capture completed (Baseline).
+-### Project Update: Week 2 **(March 15, 2026)**
+Successfully completed the second data collection and performed a comparative analysis.
+
+**Key Findings:**
+* **Weekly Inflation Rate:** 2.07% (average for the 'Almacén' category).
+* **Sample Size:** 50 consistent products compared between March 8 and March 15.
+* **Analysis:** While the average remains stable, high price dispersion was detected, with specific items recording spikes over 30% due to the expiration of seasonal promotions.
+
+![Weekly Price Increases](top_aumentos_semanal.png)
+
+
+- **[Upcoming]:**price variation analysis scheduled for next week.
 
 
