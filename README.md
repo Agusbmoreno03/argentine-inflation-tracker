@@ -21,6 +21,6 @@ Successfully completed the second data collection and performed a comparative an
 ![Weekly Price Increases](top_aumentos_semanal.png)
 
 
-- **[Upcoming]:**price variation analysis scheduled for next week.
+- **[Upcoming]:** price variation analysis scheduled for next week.
 
 
