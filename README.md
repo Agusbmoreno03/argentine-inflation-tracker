@@ -10,7 +10,6 @@ This project focuses on tracking price dynamics in Argentina by scraping data fr
 
 ## Current Status: 🏗️ In Development
 - **[March 8, 2026]:** Initial script deployment and first data capture completed (Baseline).
--  **[March 8, 2026]:** Initial script deployment and first data capture completed (Baseline).
 -### Project Update: Week 2 **(March 15, 2026)**
 Successfully completed the second data collection and performed a comparative analysis.
 
