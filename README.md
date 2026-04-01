@@ -1,4 +1,5 @@
 # Argentine Grocery Inflation Tracker 🇦🇷
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://argentine-inflation-tracker-7ccbexajsjfk2zi2wlvjsv.streamlit.app/) 
 
 ## What is this project?
 
