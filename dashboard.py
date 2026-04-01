@@ -5,7 +5,7 @@ import os
 import glob
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
-FOLDER = r"C:\Users\agusm\Downloads\Pythonclass"
+FOLDER = os.path.dirname(os.path.abspath(__file__)) 
 
 # ── LOAD ALL CSVS AUTOMATICALLY ──────────────────────────────────────────────
 @st.cache_data
