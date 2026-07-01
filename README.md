@@ -1,6 +1,6 @@
 # Argentine Inflation Tracker
 
-[**🔗 Live dashboard on Streamlit Cloud**](PASTE_YOUR_STREAMLIT_URL_HERE)
+[**🔗 Live dashboard on Streamlit Cloud**](https://argentine-inflation-tracker-7ccbexajsjfk2zi2wlvjsv.streamlit.app/)
 
 A weekly scraper of grocery prices from the "almacén" (pantry) category of Carrefour Argentina, used to track real inflation of a mass-consumption basket and compare it against Argentina's official CPI (INDEC).
 
