@@ -1,138 +1,89 @@
-# Argentine Grocery Inflation Tracker 🇦🇷
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://argentine-inflation-tracker-7ccbexajsjfk2zi2wlvjsv.streamlit.app/) 
+# Argentine Inflation Tracker
 
-## What is this project?
+[**🔗 Live dashboard on Streamlit Cloud**](PASTE_YOUR_STREAMLIT_URL_HERE)
 
-I built this to track real food inflation in Argentina by scraping price data directly from Carrefour's website every week. The idea is pretty simple — instead of waiting for the government's monthly CPI report, I collect prices myself and see how they move week over week.
-
-Argentina has a well-known inflation problem so tracking prices at a high frequency makes a lot of sense here. Things can move fast and monthly reports tend to smooth over what's actually happening on the ground.
+A weekly scraper of grocery prices from the "almacén" (pantry) category of Carrefour Argentina, used to track real inflation of a mass-consumption basket and compare it against Argentina's official CPI (INDEC).
 
 ## How it works
 
-- **Data source:** Carrefour Argentina (`carrefour.com.ar`) — Almacén (Grocery) category
-- **Method:** Direct API calls to Carrefour's product search endpoint — no browser needed, their API is public
-- **Frequency:** Weekly snapshots, automated every Sunday
+`scraper.py` runs automatically every Saturday via Windows Task Scheduler. It scrapes Carrefour's public API (`/api/catalog_system/pub/products/search/almacen`), saves a CSV with ~1000 products (`precios_almacen_YYYYMMDD.csv`), and pushes it to this repo with an automatic commit and push.
 
----
+## Available data
 
-## Project log
-
-###  Week 1 — March 8, 2026 (Baseline)
-
-First scrape ever. Built the initial script, hit Carrefour's API, and saved 250 grocery products to a CSV. This is the baseline everything else gets compared against.
-
-At this point the script was fully manual — just running cells in a Jupyter notebook one by one.
-
----
-
-### Week 2 — March 15, 2026
-
-Ran the same scraper one week later and did the first Week-over-Week comparison.
-
-**Results (W1 → W2):**
-- Products matched: 50
-- Weekly inflation rate: **+2.07%**
-- Some items spiked over 30% — turned out to be promotions expiring, not real price hikes
-
-![Weekly Price Increases](top_aumentos_semanal.png)
-
----
-
-###  Week 3 — March 22, 2026
-
-Third scrape. Now with 3 data points I could calculate cumulative inflation for the first 15 days of March.
-
-**Results (W1 → W3, using promotional price):**
-- Products matched: 49
-- Cumulative inflation: **-0.16%**
-
-That negative number looked weird so I dug into the distribution:
-- 35 out of 49 products had **zero price change**
-- 8 went down, 6 went up
-- The "decreases" were huge swings (-28%, -25%) from big brands like Maggi and Savora — clearly promotions, not deflation
-
-**Key fix discovered here:** the original code was calculating inflation by dividing the *average price of W3 by the average price of W1*, which is statistically wrong. The correct way is to calculate the % change per product first and then average those. Fixed this in `InflationProject_v2.ipynb`.
-
----
-
-###  Key improvement: switching to List Price
-
-This is where things got interesting. Carrefour's API returns two price fields:
-
-- `Price` — what you pay at checkout (includes active discounts)
-- `List Price` — the official shelf price before any promotion
-
-When I redid the W1 → W3 comparison using `List Price` instead of `Price`, the results changed significantly:
-
-| Metric | Promo Price | List Price |
+| File | Date | Products |
 |---|---|---|
-| Cumulative inflation (15 days) | -0.16% | **+0.35%** |
-| Products that went down | 8 | 2 |
-| No change | 35 | 42 |
+| `precios_almacen_20260308.csv` to `20260405.csv` | Mar-Apr 2026 | ~1000 each |
+| `precios_almacen_20260412.csv` to `20260426.csv` | Apr 2026 | ~1000 each |
+| `precios_almacen_20260510.csv`, `20260518.csv`, `20260531.csv` | May 2026 | ~1000 each |
+| `precios_almacen_20260621.csv`, `20260701.csv` | Jun-Jul 2026 | ~1000 each |
+| `canasta_carrefour_20260322.csv` | Mar 2026 | reduced basket |
 
-The fake "deflation" completely disappeared. Those Maggi and Savora drops were 100% promotional noise. The real inflation signal using List Price was **+0.35% over 15 days** — small but positive, which makes way more sense for Argentina right now.
+**Note on gaps:** between April and June 2026 the scraper ran irregularly (Task Scheduler required the laptop to be on, plugged in, and logged in at the exact scheduled time), so dates aren't always spaced 7 days apart. See the "Methodology" section below for how this is handled in the analysis. This was fixed in July 2026 (see Changelog).
 
-The conclusion: **Carrefour is keeping list prices stable and using promotions as the main pricing lever.** From here on the scraper saves both columns from the start.
+## Inflation analysis methodology
 
----
+Since measurements aren't always spaced exactly one week apart, the analysis **does not assume even intervals**. In addition, to average price changes across a whole basket of products, the project uses the **Jevons index** (the same type of calculation used by official statistics offices, including Argentina's INDEC, for elementary price aggregates) instead of a simple average. This was arrived at after testing three methods and finding two of them gave unreliable results:
 
-###  Week 4 — March 29, 2026 (First automated scrape)
-
-Two big upgrades happened before this scrape:
-
-**1. Automated scraping** — created a standalone `scraper.py` file and set it up with Windows Task Scheduler to run every Sunday automatically. No more running the notebook manually.
-
-**2. Bigger sample** — increased from 5 pages (250 products) to 20 pages (1000 products) so the basket is more statistically robust and more products survive the week-over-week merge.
-
-**Final March 2026 results (W1 → W4):**
-- Products with full 4-week history: 48
-- Monthly inflation (List Price): **-0.81%**
-- Monthly inflation (Promo Price): **+1.57%**
-
-That gap between the two numbers is actually the most interesting finding of the whole month. Carrefour lowered official shelf prices but pulled back on discounts — so on paper prices went down, but if you actually went to the supermarket you paid more. Pretty sneaky move.
-
-The weekly trend also told an interesting story — prices spiked in week 2, dropped in week 3 because of promos, then jumped again in week 4 when those promos ended. If you only looked at the monthly number you'd completely miss that volatility.
-
-Biggest increases were **national brands** (flour +10%, mayonnaise +7.9%). Biggest decreases were all **Carrefour's own private label** products (tomato, corn, lentils) — they clearly cut prices on their own brand to compete.
-
----
-
-### Dashboard — March 30, 2026
-
-Built a Streamlit dashboard (`dashboard.py`) that reads all the weekly CSVs automatically and displays:
-
-- Key metrics (weeks tracked, monthly inflation List Price vs Promo Price)
-- Cumulative inflation trend line across all weeks
-- Top 5 biggest increases and decreases
-- Price dispersion breakdown (how many products went up, down, or stayed flat)
-
-The dashboard updates automatically whenever a new weekly CSV gets added — no code changes needed.
-
-To run it:
-```
-C:\Users\agusm\AppData\Local\Python\pythoncore-3.14-64\python.exe -m streamlit run dashboard.py
-```
-
----
-
-## Files in this repo
-
-| File | Description |
+| Method | Problem |
 |---|---|
-| `InflationProyect.ipynb` | Original notebook — shows the full learning process, bugs and all |
-| `InflationProject_v2.ipynb` | Improved version — English outputs, fixed calculation, List Price tracking |
-| `scraper.py` | Standalone scraper that runs automatically every Sunday via Task Scheduler |
-| `dashboard.py` | Streamlit dashboard — reads all CSVs and displays the full analysis |
-| `precios_almacen_20260308.csv` | Week 1 data (baseline) |
-| `precios_almacen_20260315.csv` | Week 2 data |
-| `precios_almacen_20260322.csv` | Week 3 data |
-| `precios_almacen_20260329.csv` | Week 4 data (first automated scrape, 1000 products) |
+| Arithmetic mean of each product's % change | Highly sensitive to outliers: 2-3 products with large jumps (e.g. +80%) distort the average even though they're a small minority of the basket |
+| Ratio of average prices (Dutot index) | Biased toward expensive products: a $19,000 olive oil carries the same weight in the average as a $500 pack of noodles, when it should be weighted by relative change, not absolute price |
+| **Geometric mean of price relatives (Jevons index)** ✅ | Robust to both problems — the one used in this project |
 
-> The original notebook is kept on purpose — it documents the whole learning process including the bugs, the methodology fixes, and why switching to List Price matters. The v2 is the clean version going forward.
+**Calculation steps:**
 
----
+1. Build a **fixed basket**: only products present in *every* compared date (to avoid mixing catalog additions/removals with actual price changes). Product and brand names are normalized to lowercase before comparison, to avoid excluding products due to a capitalization mismatch between weeks.
+2. For each interval between measurements, compute each product's price ratio (`final_price / initial_price`) and average those ratios **geometrically** (Jevons), not arithmetically.
+3. Adjust that ratio for the **actual number of days elapsed** between measurements:
 
-## Next steps
-- Keep collecting weekly data through April and beyond
-- Add more product categories beyond Grocery (dairy, meat, cleaning products)
-- Correlate price changes with USD/ARS exchange rate using `yfinance`
+   ```
+   daily_change = jevons_ratio ^ (1 / days_elapsed) - 1
+   ```
+
+4. Express it as a monthly equivalent (`(1 + daily_change)^30 - 1`) to compare directly against INDEC's CPI, which is published monthly.
+
+### Results (March 22 – July 1, 2026, basket of 109 products present across all 11 measurements)
+
+| Metric | Value |
+|---|---|
+| Monthly equivalent inflation (List Price) | 1.89% |
+| Monthly equivalent inflation (Promo Price) | 3.69% |
+| Cumulative change for the period (101 days) | 12.96% |
+
+**Interesting finding:** the "list" price rose noticeably less than the effective promotional price — almost half as much. This suggests **promotions shrank over time**: the "official" shelf price barely moved, but what people actually end up paying (with active discounts) rose faster. Worth tracking over time to confirm whether the trend holds.
+
+Both figures are in line with INDEC's official CPI for the same period (~2.8%-3.7% monthly in April-May 2026), which validates that the Jevons index with a fixed basket is a better proxy than the methods tried earlier.
+
+## Changelog
+
+### July 2026 (part 2) — fixing the calculation method
+- Found that the arithmetic mean of individual % changes gave unrealistic results (e.g. 11% monthly) due to outlier sensitivity — a few products with large price jumps distorted the aggregate.
+- Tried replacing it with a ratio of average prices (Dutot), which fixed the outlier problem but introduced a bias toward expensive products.
+- Adopted the **Jevons index** (geometric mean of price ratios), consistent with official statistics methodology, in both `dashboard.py` and `analysis.py`.
+- Unified the text normalization rule (lowercase + trimmed) between `dashboard.py` and `analysis.py` — they previously gave different basket sizes (621 vs 109 products) for the same dataset because one of the two wasn't lowercasing product names before comparing.
+- Fixed a bug in `dashboard.py` where duplicate products within a single CSV (same name+brand repeated) multiplied rows when merging the 11 weeks together, eventually hanging the app.
+- Added `analysis.py`: a standalone matplotlib script to run locally, with robust handling of CSVs in a different format (skips them with a warning instead of breaking the whole analysis).
+
+### July 2026 (part 1) — scraper robustness and automation
+- **Retries with backoff** per page instead of aborting the whole scrape on the first error.
+- **30s initial wait** on startup, to give WiFi time to reconnect if the PC just woke from sleep.
+- **Persistent logging** to `scraper.log` with a timestamp for every run (previously only visible in the console, lost when running without a logged-in session).
+- **Automatic commit and push to GitHub** at the end of each run (best-effort: if it fails, the CSV is still saved locally and the error is logged).
+- Reconfigured the Windows Task Scheduler task:
+  - `Run whether user is logged on or not`
+  - `Wake the computer to run this task`
+  - `If the scheduled start is missed, run the task as soon as possible`
+  - Task history enabled to audit future runs.
+
+These changes followed the discovery that the scraper had stopped pushing data to GitHub since April 5th, even though it kept running locally on and off due to the previous Task Scheduler setup (which required the laptop plugged in and logged in at the exact scheduled time, with no retry if a run was missed).
+
+## Repo files
+
+- `scraper.py` — scraping script + automatic push to GitHub
+- `analysis.py` — local analysis with matplotlib charts (basket index + top product-level price changes)
+- `dashboard.py` — Streamlit dashboard
+- `precios_almacen_*.csv` — weekly data
+- `precios_almacen_20260308.csv`, `20260315.csv` — old format (Spanish column names), excluded from analysis due to schema incompatibility
+- `reporte_comparativo_final.csv` — comparative report
+- `top_aumentos_semanal.png` — visualization of the biggest weekly increases
+- `requirements.txt` — dependencies
